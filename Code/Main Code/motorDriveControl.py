@@ -12,8 +12,8 @@ class MotorController:
         self.lastEncoderCount = 0
         self.lastEcnCountTime = 1000*(time.time())
         self.rotSpeed = 0
-        self.encodToRot = 640 # encoder counts per end shaft rotation
-        self.motorFactor = 100/(100) # max duty cicle for max endshaft rpm
+        self.encodToRot = 400 # encoder counts per end shaft rotation
+        self.motorFactor = 25/(100) # max duty cicle for max endshaft rpm
         self.speedCorrectFactor = 0
         self.setRotSpeed = 0
         self.dutyCycle=0
@@ -32,7 +32,7 @@ class MotorController:
 
         GPIO.add_event_detect(encoder_pin_0, GPIO.RISING, callback=self.encoder_callback)
 
-        GPIO.add_event_detect(encoder_pin_1, GPIO.RISING, callback=self.encoder_callback)
+        #GPIO.add_event_detect(encoder_pin_1, GPIO.RISING, callback=self.encoder_callback)
  
 
     def encoder_callback(self, channel):
@@ -42,28 +42,20 @@ class MotorController:
             elif GPIO.input(self.motor_pins[1]) and not GPIO.input(self.motor_pins[2]):
                 self.encoderCount -= 1
 
-            if abs(self.encoderCount - self.lastEncoderCount) > 64 and 1000*time.time()>self.lastEcnCountTime:
+            if abs(self.encoderCount - self.lastEncoderCount) > 16 and 1000*time.time()>self.lastEcnCountTime:
                 self.rotSpeed = (60*1000) * ((self.encoderCount - self.lastEncoderCount) / self.encodToRot) / (
                         ((1000*time.time()-self.lastEcnCountTime))
                 )
 
-                print(1000*time.time()-self.lastEcnCountTime)
-                print(self.encoderCount-self.lastEncoderCount)
-                print(self.encoderCount)
-                print(self.lastEncoderCount)                
-                print("rot speed")
-                print(self.rotSpeed)
-                print(self.setRotSpeed)
-                print(self.dutyCycle)
-                print("...")
+
                 self.lastEcnCountTime = 1000*(time.time())
                 self.lastEncoderCount = self.encoderCount
                 
 
-                if self.rotSpeed>self.setRotSpeed and self.speedCorrectFactor>-100:
+                if (int(self.rotSpeed)>int(self.setRotSpeed)) and self.speedCorrectFactor>-75:
                     self.speedCorrectFactor =self.speedCorrectFactor - 1
     
-                if self.rotSpeed<self.setRotSpeed and self.speedCorrectFactor<100:
+                if (int(self.rotSpeed)<int(self.setRotSpeed)) and self.speedCorrectFactor<75:
                     self.speedCorrectFactor =self.speedCorrectFactor + 1   
                 
         
@@ -74,14 +66,13 @@ class MotorController:
                 elif self.dutyCycle<0:
                     self.dutyCycle=0  
                 
-                
-                print(self.speedCorrectFactor)
-                print(".....")
                     
-                self.pwm.ChangeDutyCycle(self.dutyCycle) 
+                self.pwm.ChangeDutyCycle(self.dutyCycle)
+                
+                print(f"##### Motor: {self.motorTag} Set Rotation Speed: {self.setRotSpeed} Rotation Speed: {self.rotSpeed} Duty Cycle: {self.dutyCycle} Correction:{self.speedCorrectFactor} Encoder Count: {self.encoderCount}")
                
             
-            ##print(f"Motor: {self.motorTag} Set Rotation Speed: {self.setRotSpeed} Rotation Speed: {self.rotSpeed} Duty Cycle: {self.dutyCycle} Encoder Count: {self.encoderCount}")
+            print(f"Motor: {self.motorTag} Set Rotation Speed: {self.setRotSpeed} Rotation Speed: {self.rotSpeed} Duty Cycle: {self.dutyCycle} Correction:{self.speedCorrectFactor} Encoder Count: {self.encoderCount}")
             
                       
 
@@ -91,12 +82,15 @@ class MotorController:
         
         self.setRotSpeed=setRotSpeed
         
+        
         self.dutyCycle=abs(self.setRotSpeed*self.motorFactor+self.speedCorrectFactor)
         
         if self.dutyCycle>100:
           self.dutyCycle=100
         elif self.dutyCycle<0:
           self.dutyCycle=0  
+        
+        #print(self.dutyCycle)
         
         if setRotSpeed == 0:
             GPIO.output(self.motor_pins[1], GPIO.LOW)
