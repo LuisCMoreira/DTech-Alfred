@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snapshot Viewer</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+    <h1>Latest Snapshot</h1>
+    <img id="snapshotImage" alt="Latest Snapshot">
+
+    <script>
+        // Function to update the image every 0.2 seconds
+        function updateImage() {
+            $("#snapshotImage").attr("src", "/image?" + new Date().getTime());
+            setTimeout(updateImage, 200);
+        }
+
+        // Start updating the image
+        $(document).ready(function() {
+            updateImage();
+        });
+    </script>
+</body>
+</html>

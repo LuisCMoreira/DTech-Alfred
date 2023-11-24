@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Image Viewer</title>
+</head>
+<body>
+    <h1>Image Viewer</h1>
+    <img id="image" src="{{ url_for('get_image') }}" alt="Snapshot">
+    <script>
+        // Function to update the image every 0.5 seconds
+        function updateImage() {
+            var imageElement = document.getElementById('image');
+            imageElement.src = "{{ url_for('get_image') }}" + "?" + new Date().getTime();
+        }
+
+        // Update the image every 0.5 seconds
+        setInterval(updateImage, 1000);
+    </script>
+</body>
+</html>
